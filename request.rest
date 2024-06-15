@@ -5,3 +5,12 @@ Content-Type: application/json
     "email": "long@gmail.com",
     "password": "123456"
 }
+
+###
+POST https://localhost:3000/register
+Content-Type: application/json
+
+{
+    "email": "long@gmail.com",
+    "password": "123456"
+}
