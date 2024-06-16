@@ -1,6 +1,8 @@
 # Introduction
 
-Backend Server for Chat Application using Node.js
+Backend Server for Messenger app using Node.js
+
+Messenger app is also available on Android [Messenger Android](https://github.com/hoangmanhlong/messenger-android)
 
 # Usage
 
@@ -15,4 +17,8 @@ npm run start
 Development environment
 ```bash
 npm run devStart
+```
+Test
+```bash
+node test.js
 ```

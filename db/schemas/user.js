@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+const userModelName = "User"
+
 const userSchema = new mongoose.Schema({
     id: {
         type: String,
@@ -29,7 +31,11 @@ const userSchema = new mongoose.Schema({
     refreshToken: {
         type: String,
         default: null
+    },
+    fcmToken: {
+        type: String,
+        default: null
     }
 })
 
-export default mongoose.model('User', userSchema)
+export default mongoose.model(userModelName, userSchema)

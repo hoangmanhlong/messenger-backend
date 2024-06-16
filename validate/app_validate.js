@@ -12,7 +12,7 @@ const isValidPassword = (password) => String(password).length >= 6;
 
 const hashcodeData = async (data) => {
   try {
-    return await hash(data, 10)
+    return await hash(String(data), 10)
   } catch(e) {
     console.log(e)
     return null

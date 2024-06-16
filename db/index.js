@@ -25,10 +25,14 @@ const updateTokenToUserData = async (email, accessToken, refreshToken) => {
  */
 const getUser = async (data) => {
     try {
-        const userdata = await user.findOne({email: data.email})
-        const isCorrectPassword = await compareHashcode(data.password, userdata.password)
-        if(isCorrectPassword) return userdata
-        else return null
+        // const userdata = await user.findOne({email: data.email})
+        // console.log(data.password)
+        // console.log(userdata.password)
+        // const isCorrectPassword = await compareHashcode(String(data.password), userdata.password)
+        // console.log(isCorrectPassword)
+        // if(isCorrectPassword) return userdata
+        // else return null
+        return await user.findOne(data)
     }catch(e) {
         console.log(e)
         return null

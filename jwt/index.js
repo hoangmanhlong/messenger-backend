@@ -1,9 +1,10 @@
 import jwt from 'jsonwebtoken'
+import { updateTokenToUserData } from '../db/index.js'
 
 export async function generateAccessToken(payload) {
     try {
         return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30s' })
-    }catch(e) {
+    } catch (e) {
         return null
     }
 }
@@ -11,7 +12,7 @@ export async function generateAccessToken(payload) {
 export async function generateRefreshToken(payload) {
     try {
         return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET)
-    }catch(e) {
+    } catch (e) {
         return null
     }
 }
@@ -21,11 +22,15 @@ export async function verityAccessToken(req, res, next) {
         const bearer_token = req.body.access_token
         const access_token = bearer_token.split(' ')[1]
         jwt.verify(access_token, process.env.ACCESS_TOKEN_SECRET, (error, data) => {
-            if(error) return res.sendStatus(403)
+            if (error) {
+                updateTokenToUserData(req.body.email, null, null)
+                return res.sendStatus(403)
+            }
             req.data = data
             next()
+            return
         })
-    }catch(e) {
+    } catch (e) {
         return res.sendStatus(403)
     }
 }
