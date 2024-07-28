@@ -1,5 +1,5 @@
 import express from "express";
-import { getUser } from "../db/index.js";
+import { getUser } from "../db/db.js";
 
 const route = express.Router();
 

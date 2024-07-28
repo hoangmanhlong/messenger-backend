@@ -2,8 +2,17 @@ import mongoose from "mongoose";
 import user from "./schemas/user.js";
 import { compareHashcode } from "../validate/app_validate.js";
 
-const dbUrl = `mongodb://${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`
-mongoose.connect(dbUrl)
+const dbUrl = `mongodb://${process.env.MONGO_DB_HOST}:${process.env.MONGO_DB_PORT}/${process.env.MONGO_DB_NAME}`
+
+const connectDB = async () => {
+    try {
+        await mongoose.connect(dbUrl)
+        console.log("MongoDB connection successful")
+    } catch(e) {
+        console.log(e);
+        process.exit(1)
+    }
+}
 
 const saveAccount = async (data) => await new user(data).save()
 
@@ -39,4 +48,4 @@ const getUser = async (data) => {
     }
 }
 
-export {saveAccount, checkUserExist, getUser, updateTokenToUserData}
+export { connectDB, saveAccount, checkUserExist, getUser, updateTokenToUserData }

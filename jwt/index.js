@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import { updateTokenToUserData } from '../db/index.js'
+import { updateTokenToUserData } from '../db/db.js'
 
 export async function generateAccessToken(payload) {
     try {

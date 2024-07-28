@@ -1,6 +1,6 @@
 import express from "express";
 import { isValidEmail, isValidPassword, hashcodeData } from "../validate/app_validate.js";
-import { saveAccount, checkUserExist, getUser, updateTokenToUserData } from "../db/index.js";
+import { saveAccount, checkUserExist, getUser, updateTokenToUserData } from "../db/db.js";
 import { generateAccessToken, generateRefreshToken } from "../jwt/index.js";
 
 const route = express.Router();
