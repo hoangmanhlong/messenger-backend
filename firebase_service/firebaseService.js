@@ -12,13 +12,6 @@ admin.initializeApp({
   databaseURL: process.env.FIREBASE_REALTIME_DATABASE_URL,
 });
 
-// As an admin, the app has access to read and write all data, regardless of Security Rules
-// var db = admin.database();
-// var ref = db.ref("chatrooms");
-// ref.on("value", function(snapshot) {
-//   console.log(snapshot.val());
-// });
-
 /**
  * Use your Firebase credentials together with the Google Auth Library for your preferred language 
  * to retrieve a short-lived OAuth 2.0 access token
