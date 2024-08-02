@@ -7,7 +7,7 @@ import { connectDB } from "./db/db.js";
 import { initializeSocket } from "./socket/socket.js";
 import { createServer } from 'node:http';
 
-connectDB()
+// connectDB()
 
 const port = process.env.SERVER_PORT || 6688;
 
