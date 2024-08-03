@@ -8,7 +8,7 @@ let io = null
 // Example: {socket1: "uvuvfrg8v5785gbug"}
 const socketIDUserDataUidList = {}
 
-const initializeSocket = (server) => {
+const initializeSocket =  async (server) => {
     io = new Server(server)
     io.on('connection', async (socket) => {
 
