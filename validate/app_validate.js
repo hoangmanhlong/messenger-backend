@@ -27,4 +27,12 @@ const compareHashcode =  async (data, encrypted) => {
   }
 }
 
-export { isValidEmail, isValidPassword, hashcodeData, compareHashcode };
+const parseStringToJSON = (data) => {
+  try {
+    return typeof data === 'string' ? JSON.parse(data) : data
+  } catch(e) {
+    return null
+  }
+}
+
+export { isValidEmail, isValidPassword, hashcodeData, compareHashcode, parseStringToJSON };

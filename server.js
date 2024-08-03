@@ -6,6 +6,7 @@ import morgan from "morgan";
 import { connectDB } from "./db/db.js";
 import { initializeSocket } from "./socket/socket.js";
 import { createServer } from 'node:http';
+import Constant from "./constant/constant.js";
 
 // connectDB()
 
@@ -20,7 +21,7 @@ app.use(morgan('combined'))
 const server = createServer(app);
 initializeSocket(server)
 
-app.get("/", (req, res) => res.send("This is backend Messenger app"));
+app.get("/", (req, res) => res.send(Constant.SERVER_ENDPOINT_CONNECT_MESSAGE));
 app.use("/api", route);
 
 server.listen(port, () => console.log(`Server is running on port ${port}`));

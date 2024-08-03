@@ -6,11 +6,15 @@ import admin from "firebase-admin";
  */
 const serviceAccount = admin.credential.applicationDefault();
 
-admin.initializeApp({
-  // credential: admin.credential.cert(serviceAccount), // use in case serviceAccount is path to Application Default Credentials (.env)
-  credential: serviceAccount,
-  databaseURL: process.env.FIREBASE_REALTIME_DATABASE_URL,
-});
+try {
+  admin.initializeApp({
+    // credential: admin.credential.cert(serviceAccount), // use in case serviceAccount is path to Application Default Credentials (.env)
+    credential: serviceAccount,
+    databaseURL: process.env.FIREBASE_REALTIME_DATABASE_URL,
+  });
+} catch (error) {
+  console.log(error);
+}
 
 /**
  * Use your Firebase credentials together with the Google Auth Library for your preferred language 
