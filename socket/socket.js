@@ -1,7 +1,8 @@
 import { Server } from "socket.io"
 import Constant from "../constant/constant.js"
-import { setUserOnlineStatus, setVerifiedStatus } from "../firebase_service/realtime/appRealtimeService.js"
+import { setUserOnlineStatus, setVerifiedStatus, getUsersInChatRoom, getTokens } from "../firebase_service/realtime/appRealtimeService.js"
 import { parseStringToJSON } from "../validate/app_validate.js"
+import { sendMessageWithToken, sendMessageToUsers } from "../firebase_service/fcm/appFcmService.js"
 
 // Socket IO instance is attached server
 let io = null
@@ -73,8 +74,28 @@ const initializeSocket = async (server) => {
 
         socket.on(Constant.NEW_MESSAGE_SOCKET_EVENT, async (data) => {
 
+            // Convert Json object or Json string to JSON object
+            const parsedData = parseStringToJSON(data)
+            console.log(parsedData)
+
+            // Check parsedData is validate
+            if (parsedData) {
+                const { chatRoomId, newMessage, members } = parsedData
+                if (chatRoomId && newMessage) {
+                    const { senderId } = parseStringToJSON(newMessage)
+                    if (senderId) {
+                        const membersUid = (members != null && members.length >= Constant.MIN_SIZE_OF_CHATROOM) ? members : await getUsersInChatRoom(chatRoomId)
+                        if(membersUid != null && membersUid.length >= Constant.MIN_SIZE_OF_CHATROOM) {
+                            const listOfNotifiedUsers = membersUid.filter(id => id !== senderId)
+                            const tokens = await getTokens(listOfNotifiedUsers)
+                            sendMessageToUsers(newMessage, tokens)
+                        }
+                    }
+                }
+            }
         })
     })
+
     console.log(Constant.SOCKET_IO_CONNECT_SUCCESSFULLY)
 }
 

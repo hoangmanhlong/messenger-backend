@@ -6,12 +6,23 @@ const sendTopicMessage = (message) => {
         .catch(error => { })
 }
 
-const sendMessageWithToken = (messageData, token) => {
+const sendMessageWithToken =  async (messageData, token) => {
     const message = {
         data: messageData,
         token: token
     }
     getMessaging().send(message)
-        .then(response => { })
-        .catch(error => { })
 }
+
+const sendMessageToUsers = async (mesageData, tokens) => {
+    if(tokens == null) return
+    tokens.forEach(token => {          
+        try {
+            sendMessageWithToken(mesageData, token)
+        } catch(e) {
+            console.log(e)
+        }
+    });
+}
+
+export { sendMessageWithToken, sendMessageToUsers }
