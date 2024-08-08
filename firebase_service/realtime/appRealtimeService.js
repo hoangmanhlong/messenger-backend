@@ -41,15 +41,12 @@ async function getUsersInChatRoom(chatroomID) {
 
 async function getTokens(members) {
   try {
-    if (privateUserData == null || members == null) return null
+    if (!privateUserData || !members) return null
 
     // Sử dụng Object.keys() để lấy danh sách các userId trong privateUserData
-    const tokens = Object.keys(privateUserData)
-      .filter(userId => members.includes(userId))
-      .map(userId => privateUserData[userId].fcmToken);
-
-    // Loại bỏ các giá trị undefined hoặc null (nếu có)
-    return tokens.filter(token => token !== undefined && token !== null);
+    return Object.entries(privateUserData)
+    .filter(([userId, userData]) => members.includes(userId) && userData?.fcmToken && userData.verified && !userData.online)
+    .map(([_, userData]) => userData.fcmToken);
   } catch (e) {
     console.log(e);
     return null;

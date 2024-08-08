@@ -24,4 +24,4 @@ initializeSocket(server)
 app.get("/", (req, res) => res.send(Constant.SERVER_ENDPOINT_CONNECT_MESSAGE));
 app.use("/api", route);
 
-server.listen(port, () => console.log(`Server is running on port ${port}`));
+server.listen(port, () => Constant.showRunningStatus(port));

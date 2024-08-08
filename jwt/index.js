@@ -1,9 +1,10 @@
 import jwt from 'jsonwebtoken'
 import { updateTokenToUserData } from '../db/db.js'
+import Constant from '../constant/constant.js'
 
 export async function generateAccessToken(payload) {
     try {
-        return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30s' })
+        return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: Constant.TOKEN_EXPIRATON_TIME })
     } catch (e) {
         return null
     }

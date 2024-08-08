@@ -2,7 +2,7 @@ import { Server } from "socket.io"
 import Constant from "../constant/constant.js"
 import { setUserOnlineStatus, setVerifiedStatus, getUsersInChatRoom, getTokens } from "../firebase_service/realtime/appRealtimeService.js"
 import { parseStringToJSON } from "../validate/app_validate.js"
-import { sendMessageWithToken, sendMessageToUsers } from "../firebase_service/fcm/appFcmService.js"
+import { sendMessageToUsers } from "../firebase_service/fcm/appFcmService.js"
 
 // Socket IO instance is attached server
 let io = null
@@ -76,18 +76,27 @@ const initializeSocket = async (server) => {
 
             // Convert Json object or Json string to JSON object
             const parsedData = parseStringToJSON(data)
-            console.log(parsedData)
 
             // Check parsedData is validate
             if (parsedData) {
                 const { chatRoomId, newMessage, members } = parsedData
                 if (chatRoomId && newMessage) {
-                    const { senderId } = parseStringToJSON(newMessage)
-                    if (senderId) {
-                        const membersUid = (members != null && members.length >= Constant.MIN_SIZE_OF_CHATROOM) ? members : await getUsersInChatRoom(chatRoomId)
-                        if(membersUid != null && membersUid.length >= Constant.MIN_SIZE_OF_CHATROOM) {
-                            const listOfNotifiedUsers = membersUid.filter(id => id !== senderId)
+                    const { senderId, text, photo, audio, video } = parseStringToJSON(newMessage)
+                    if (senderId && (text || photo || video || audio)) {
+
+                        // 
+                        const listOfUidsOfUsersInchatRoom = (members != null && members.length >= Constant.MIN_SIZE_OF_CHATROOM) ? members : await getUsersInChatRoom(chatRoomId)
+                        
+                        // Check list of uids of user is valid
+                        if(listOfUidsOfUsersInchatRoom != null && listOfUidsOfUsersInchatRoom.length >= Constant.MIN_SIZE_OF_CHATROOM) {
+
+                            // Delete sender uid from uid list - The sender will not receive his own messages.
+                            const listOfNotifiedUsers = listOfUidsOfUsersInchatRoom.filter(id => id !== senderId)
+
+                            // Get list of tokens from list of user uid
                             const tokens = await getTokens(listOfNotifiedUsers)
+
+                            // Send new messages to users according to token list
                             sendMessageToUsers(newMessage, tokens)
                         }
                     }
