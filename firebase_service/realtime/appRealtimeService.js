@@ -44,9 +44,16 @@ async function getTokens(members) {
     if (!privateUserData || !members) return null
 
     // Sử dụng Object.keys() để lấy danh sách các userId trong privateUserData
-    return Object.entries(privateUserData)
-    .filter(([userId, userData]) => members.includes(userId) && userData?.fcmToken && userData.verified && !userData.online)
-    .map(([_, userData]) => userData.fcmToken);
+    let res = []
+    for(let [k, v] of Object.entries(privateUserData)) {
+      if (members.includes(k) && v?.fcmToken && v.verified && !v.online) {
+        res.push(v?.fcmToken)
+      }
+      if (res.length === members.length) {
+        break
+      }
+    }
+    return res
   } catch (e) {
     console.log(e);
     return null;
