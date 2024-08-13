@@ -1,6 +1,6 @@
 import { Server } from "socket.io"
-import Constant from "../constant/constant.js"
-import { setUserOnlineStatus, getUsersInChatRoom, getTokens } from "../firebase_service/realtime/appRealtimeService.js"
+import Constant, { ChatRoomType } from "../constant/constant.js"
+import { setUserOnlineStatus, getUsersInChatRoom, getTokens, createNewChatRoom } from "../firebase_service/realtime/appRealtimeService.js"
 import { parseStringToJSON } from "../validate/app_validate.js"
 import { sendMessageToUsers } from "../firebase_service/fcm/appFcmService.js"
 
@@ -29,12 +29,12 @@ const initializeSocket = async (server) => {
          * 
          * @param data Data sent from client
          */
-        socket.on(Constant.USER_ONLINE_STATUS_SOCKET_EVENT, async data => handleUserOnlineStatusEvent(data))
+        socket.on(Constant.USER_ONLINE_STATUS_SOCKET_EVENT, async data => handleUserOnlineStatusEvent(data, socketId))
 
         /**
-         * Add Disconnect listener when client disconnect
+         * Add Disconnect listener when client disconnect. Remove connected socket from socket list
          */
-        socket.on('disconnect', async () => handleClientDisconnect())
+        socket.on('disconnect', async () => handleClientDisconnect(socketId))
 
         /**
          * New Message Listener - Called when there is a new message from the client
@@ -42,6 +42,13 @@ const initializeSocket = async (server) => {
          * @param data Data sent from client
          */
         socket.on(Constant.NEW_MESSAGE_SOCKET_EVENT, async data => handleNewMessageEvent(data))
+
+        /**
+         * New ChatRoom Listener - Called when have new chat room created
+         * 
+         * @param data Data sent from client
+         */
+        socket.on(Constant.NEW_CHATROOM_SOCKET_EVENT, async data => handleNewChatRoom(data))
     })
 
     console.log(Constant.SOCKET_IO_CONNECT_SUCCESSFULLY)
@@ -66,9 +73,9 @@ async function handleNewMessageEvent(data) {
 
                 // 
                 const listOfUidsOfUsersInchatRoom = (members != null && members.length >= Constant.MIN_SIZE_OF_CHATROOM) ? members : await getUsersInChatRoom(chatRoomId)
-                
+
                 // Check list of uids of user is valid
-                if(listOfUidsOfUsersInchatRoom != null && listOfUidsOfUsersInchatRoom.length >= Constant.MIN_SIZE_OF_CHATROOM) {
+                if (listOfUidsOfUsersInchatRoom != null && listOfUidsOfUsersInchatRoom.length >= Constant.MIN_SIZE_OF_CHATROOM) {
 
                     // Delete sender uid from uid list - The sender will not receive his own messages.
                     const listOfNotifiedUsers = listOfUidsOfUsersInchatRoom.filter(id => id !== senderId)
@@ -84,7 +91,7 @@ async function handleNewMessageEvent(data) {
     }
 }
 
-async function handleUserOnlineStatusEvent(data) {
+async function handleUserOnlineStatusEvent(data, socketId) {
     // Convert Json object or Json string to JSON object
     const parsedData = parseStringToJSON(data)
 
@@ -106,7 +113,7 @@ async function handleUserOnlineStatusEvent(data) {
     }
 }
 
-async function handleClientDisconnect() {
+async function handleClientDisconnect(socketId) {
     // Get uid of current socket instance in socketIDUserDataUidList
     const uid = socketIDUserDataUidList[socketId];
 
@@ -119,6 +126,27 @@ async function handleClientDisconnect() {
         // Delete socket from socketIDUserDataUidList
         delete socketIDUserDataUidList[socketId];
     }
+}
+
+async function handleNewChatRoom(data) {
+    // Convert Json object or Json string to JSON object
+    const parsedData = parseStringToJSON(data)
+
+    // Check parsedData is validate
+    if (!parsedData) return
+
+    const { members, chatRoomType } = parsedData
+
+    if (!members 
+        || !Array.isArray(members)
+        || members.length < 2
+        || !chatRoomType
+        || typeof chatRoomType !== 'string'
+        || !Object.values(ChatRoomType).includes(chatRoomType)
+        || !members.every(member => typeof member === 'string')
+    ) return
+    
+    await createNewChatRoom(members, chatRoomType)
 }
 
 export default io
