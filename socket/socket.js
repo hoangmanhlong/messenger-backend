@@ -48,7 +48,7 @@ const initializeSocket = async (server) => {
          * 
          * @param data Data sent from client
          */
-        socket.on(Constant.NEW_CHATROOM_SOCKET_EVENT, async data => handleNewChatRoom(data))
+        socket.on(Constant.NEW_CHATROOM_SOCKET_EVENT, async data => handleNewChatRoom(socket, data))
     })
 
     console.log(Constant.SOCKET_IO_CONNECT_SUCCESSFULLY)
@@ -128,14 +128,14 @@ async function handleClientDisconnect(socketId) {
     }
 }
 
-async function handleNewChatRoom(data) {
+async function handleNewChatRoom(socket, data) {
     // Convert Json object or Json string to JSON object
     const parsedData = parseStringToJSON(data)
 
     // Check parsedData is validate
     if (!parsedData) return
 
-    const { members, chatRoomType } = parsedData
+    const { members, chatRoomType, message } = parsedData
 
     if (!members 
         || !Array.isArray(members)
@@ -144,9 +144,17 @@ async function handleNewChatRoom(data) {
         || typeof chatRoomType !== 'string'
         || !Object.values(ChatRoomType).includes(chatRoomType)
         || !members.every(member => typeof member === 'string')
-    ) return
+    ) {
+        return
+    }
+
+    if(chatRoomType == ChatRoomType.DOUBLE && !message) {
+        socket.emit(Constant.NEW_CHATROOM_SOCKET_EVENT, { status: false })
+        return
+    }
     
-    await createNewChatRoom(members, chatRoomType)
+    const result = await createNewChatRoom(members, chatRoomType)
+    socket.emit(Constant.NEW_CHATROOM_SOCKET_EVENT, { status: result })
 }
 
 export default io

@@ -112,9 +112,9 @@ async function createNewChatRoom(members, chatRoomType) {
 
       default:
     }
-
+    return true
   } catch (e) {
-
+    return false
   }
 }
 
