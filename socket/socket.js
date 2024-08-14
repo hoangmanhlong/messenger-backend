@@ -135,7 +135,7 @@ async function handleNewChatRoom(socket, data) {
     // Check parsedData is validate
     if (!parsedData) return
 
-    const { members, chatRoomType, message } = parsedData
+    const { members, chatRoomType } = parsedData
 
     if (!members 
         || !Array.isArray(members)
@@ -145,16 +145,18 @@ async function handleNewChatRoom(socket, data) {
         || !Object.values(ChatRoomType).includes(chatRoomType)
         || !members.every(member => typeof member === 'string')
     ) {
-        return
-    }
-
-    if(chatRoomType == ChatRoomType.DOUBLE && !message) {
-        socket.emit(Constant.NEW_CHATROOM_SOCKET_EVENT, { status: false })
+        socket.emit(Constant.NEW_CHATROOM_SOCKET_EVENT, { responseStatusCode: 500, chatroom: null })
         return
     }
     
-    const result = await createNewChatRoom(members, chatRoomType)
-    socket.emit(Constant.NEW_CHATROOM_SOCKET_EVENT, { status: result })
+    const chatroom = await createNewChatRoom(members, chatRoomType)
+    socket.emit(
+        Constant.NEW_CHATROOM_SOCKET_EVENT,
+        { 
+            responseStatusCode: chatroom == null ? 200 : 500,
+            chatRoom: chatroom 
+        }
+    )
 }
 
 export default io

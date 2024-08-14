@@ -69,16 +69,17 @@ async function getTokens(members) {
  * @param chatRoomType chatRoom Type
  */
 async function createNewChatRoom(members, chatRoomType) {
+  let chatroom = null
   try {
     switch (chatRoomType) {
 
       case ChatRoomType.DOUBLE:
 
         // Chat room Id are set according to the convention user1___user2__currentTime
-        const chatRoomId = `${members[0]}___${members[1]}___${getCurrentTime()}`
+        const chatRoomId = `${members[0]}___${members[1]}`
 
         // Create a chatroom object
-        const chatroom = {
+        chatroom = {
           chatRoomId: chatRoomId,
           members: members,
           chatRoomType: ChatRoomType.DOUBLE
@@ -112,9 +113,9 @@ async function createNewChatRoom(members, chatRoomType) {
 
       default:
     }
-    return true
+    return chatroom
   } catch (e) {
-    return false
+    return null
   }
 }
 
