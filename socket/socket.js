@@ -133,7 +133,10 @@ async function handleNewChatRoom(socket, data) {
     const parsedData = parseStringToJSON(data)
 
     // Check parsedData is validate
-    if (!parsedData) return
+    if (!parsedData) {
+        emitChatRoomResponse(socket, 500, null)
+        return
+    }
 
     const { members, chatRoomType } = parsedData
 
@@ -145,18 +148,25 @@ async function handleNewChatRoom(socket, data) {
         || !Object.values(ChatRoomType).includes(chatRoomType)
         || !members.every(member => typeof member === 'string')
     ) {
-        socket.emit(Constant.NEW_CHATROOM_SOCKET_EVENT, { responseStatusCode: 500, chatroom: null })
+        emitChatRoomResponse(socket, 500, null)
         return
     }
     
-    const chatroom = await createNewChatRoom(members, chatRoomType)
-    socket.emit(
-        Constant.NEW_CHATROOM_SOCKET_EVENT,
-        { 
-            responseStatusCode: chatroom == null ? 200 : 500,
-            chatRoom: chatroom 
-        }
-    )
+    // Create chat room in database
+    const chatRoom = await createNewChatRoom(members, chatRoomType)
+    
+    emitChatRoomResponse(socket, chatRoom == null ? 500 : 200, chatRoom)
+}
+
+/**
+ * Emit new chat room to NEW_CHATROOM_SOCKET_EVENT to current socket
+ * 
+ * @param {*} socket socket of current user
+ * @param {*} responseStatusCode status code of work
+ * @param {*} chatRoom new chatroom created
+ */
+function emitChatRoomResponse(socket, responseStatusCode, chatRoom) {
+    socket.emit(Constant.NEW_CHATROOM_SOCKET_EVENT, {responseStatusCode, chatRoom})
 }
 
 export default io

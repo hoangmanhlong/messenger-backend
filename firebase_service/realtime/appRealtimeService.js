@@ -1,5 +1,5 @@
 import { admin } from "../firebaseService.js"
-import Constant, { ChatRoomType } from "../../constant/constant.js"
+import Constant, { ChatRoomType, ContactStatus } from "../../constant/constant.js"
 import getCurrentTime from "../../time/TimeUtils.js"
 
 var realtimeDB = admin.database()
@@ -66,7 +66,9 @@ async function getTokens(members) {
  * Create new chatroom
  * 
  * @param members member uid list
- * @param chatRoomType chatRoom Type
+ * @param chatRoomType chatRoom Type (detail: Constant.ChatRoomType)
+ * 
+ * @returns New chat room just created
  */
 async function createNewChatRoom(members, chatRoomType) {
   let chatroom = null
@@ -75,7 +77,7 @@ async function createNewChatRoom(members, chatRoomType) {
 
       case ChatRoomType.DOUBLE:
 
-        // Chat room Id are set according to the convention user1___user2__currentTime
+        // Chat room Id are set according to the convention user1___user2
         const chatRoomId = `${members[0]}___${members[1]}`
 
         // Create a chatroom object
@@ -88,8 +90,10 @@ async function createNewChatRoom(members, chatRoomType) {
         // Update new chat room to Database
         await chatRoomsRef.child(chatRoomId).set(chatroom)
 
-        // Cập nhật danh sách chat room cho từng thành viên
+        // Update new chat rooms to each user's chatroom and contact list
         await Promise.all(members.map(async (memberUid) => {
+
+          // Get all chatroom list of current user
           const snapshot = await privateUserDataRef
             .child(memberUid)
             .child(Constant.FIREBASE_REALTIME_DATABASE_CHATROOMS_REF_NAME)
@@ -98,14 +102,21 @@ async function createNewChatRoom(members, chatRoomType) {
           // Save chatroom Id list. IF snapshot is null then create empty list
           const chatRoomListOfMember = snapshot.val() || [];
 
-          // Thêm chatroom mới vào danh sách
+          // Thêm chatroom mới vào danh sách~
           chatRoomListOfMember.push(chatRoomId);
 
           // Cập nhật lại danh sách chat rooms lên Firebase
-          await privateUserDataRef
+          privateUserDataRef
             .child(memberUid)
             .child(Constant.FIREBASE_REALTIME_DATABASE_CHATROOMS_REF_NAME)
             .set(chatRoomListOfMember);
+
+          // Add the opposite user to the contact list
+          privateUserDataRef
+            .child(memberUid)
+            .child(Constant.CONTACTS)
+            .child(members.find(uid => uid !== memberUid))
+            .set({ uid: memberUid, status: ContactStatus.ACTIVE })
         }));
         break
 
