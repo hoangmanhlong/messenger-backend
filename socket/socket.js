@@ -147,6 +147,8 @@ async function handleNewChatRoom(socket, data) {
         || typeof chatRoomType !== 'string'
         || !Object.values(ChatRoomType).includes(chatRoomType)
         || !members.every(member => typeof member === 'string')
+        || (chatRoomType === ChatRoomType.DOUBLE && members.length > 2)
+        || (chatRoomType === ChatRoomType.GROUP && members.length < 3)
     ) {
         emitChatRoomResponse(socket, 500, null)
         return

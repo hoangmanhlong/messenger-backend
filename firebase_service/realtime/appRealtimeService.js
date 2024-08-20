@@ -73,56 +73,87 @@ async function getTokens(members) {
 async function createNewChatRoom(members, chatRoomType) {
   let chatroom = null
   try {
-    switch (chatRoomType) {
+    if(chatRoomType === ChatRoomType.DOUBLE) {
+      // Chat room Id are set according to the convention user1___user2
+      const chatRoomId = members.join("___")
 
-      case ChatRoomType.DOUBLE:
+      // Create a chatroom object
+      chatroom = {
+        chatRoomId: chatRoomId,
+        members: members,
+        chatRoomType: ChatRoomType.DOUBLE
+      }
 
-        // Chat room Id are set according to the convention user1___user2
-        const chatRoomId = `${members[0]}___${members[1]}`
+      // Update new chat room to Database
+      await chatRoomsRef.child(chatRoomId).set(chatroom)
 
-        // Create a chatroom object
-        chatroom = {
-          chatRoomId: chatRoomId,
-          members: members,
-          chatRoomType: ChatRoomType.DOUBLE
-        }
+      // Update new chat rooms to each user's chatroom and contact list
+      await Promise.all(members.map(async (memberUid) => {
 
-        // Update new chat room to Database
-        await chatRoomsRef.child(chatRoomId).set(chatroom)
+        // Get all chatroom list of current user
+        const snapshot = await privateUserDataRef
+          .child(memberUid)
+          .child(Constant.FIREBASE_REALTIME_DATABASE_CHATROOMS_REF_NAME)
+          .get();
 
-        // Update new chat rooms to each user's chatroom and contact list
-        await Promise.all(members.map(async (memberUid) => {
+        // Save chatroom Id list. IF snapshot is null then create empty list
+        const chatRoomListOfMember = snapshot.val() || [];
 
-          // Get all chatroom list of current user
-          const snapshot = await privateUserDataRef
-            .child(memberUid)
-            .child(Constant.FIREBASE_REALTIME_DATABASE_CHATROOMS_REF_NAME)
-            .get();
+        // Thêm chatroom mới vào danh sách~
+        chatRoomListOfMember.push(chatRoomId);
 
-          // Save chatroom Id list. IF snapshot is null then create empty list
-          const chatRoomListOfMember = snapshot.val() || [];
+        // Cập nhật lại danh sách chat rooms lên Firebase
+        privateUserDataRef
+          .child(memberUid)
+          .child(Constant.FIREBASE_REALTIME_DATABASE_CHATROOMS_REF_NAME)
+          .set(chatRoomListOfMember);
 
-          // Thêm chatroom mới vào danh sách~
-          chatRoomListOfMember.push(chatRoomId);
+        // Add the opposite user to the contact list
+        const oppositeUserId = members.find(uid => uid !== memberUid)
+        privateUserDataRef
+          .child(memberUid)
+          .child(Constant.CONTACTS)
+          .child(oppositeUserId)
+          .set({ uid: oppositeUserId, status: ContactStatus.ACTIVE })
+      }));
+    } else if(chatRoomType === ChatRoomType.GROUP) {
+      
+      // Chat room Id are set according to the convention user1___user2___user3___currentTime
+      const chatRoomId = `${members.slice(0, 3).join("___")}___${getCurrentTime()}`
 
-          // Cập nhật lại danh sách chat rooms lên Firebase
-          privateUserDataRef
-            .child(memberUid)
-            .child(Constant.FIREBASE_REALTIME_DATABASE_CHATROOMS_REF_NAME)
-            .set(chatRoomListOfMember);
+      // Create a chatroom object
+      chatroom = {
+        chatRoomId: chatRoomId,
+        members: members,
+        chatRoomType: ChatRoomType.GROUP
+      }
 
-          // Add the opposite user to the contact list
-          privateUserDataRef
-            .child(memberUid)
-            .child(Constant.CONTACTS)
-            .child(members.find(uid => uid !== memberUid))
-            .set({ uid: memberUid, status: ContactStatus.ACTIVE })
-        }));
-        break
+      // Update new chat room to Database
+      await chatRoomsRef.child(chatRoomId).set(chatroom)
 
-      case ChatRoomType.GROUP:
+      // Update new chat rooms to each user's chatroom and contact list
+      await Promise.all(members.map(async (memberUid) => {
 
-      default:
+        // Get all chatroom list of current user
+        const snapshot = await privateUserDataRef
+          .child(memberUid)
+          .child(Constant.FIREBASE_REALTIME_DATABASE_CHATROOMS_REF_NAME)
+          .get();
+
+        // Save chatroom Id list. IF snapshot is null then create empty list
+        const chatRoomListOfMember = snapshot.val() || [];
+
+        // Thêm chatroom mới vào danh sách~
+        chatRoomListOfMember.push(chatRoomId);
+
+        // Cập nhật lại danh sách chat rooms lên Firebase
+        privateUserDataRef
+          .child(memberUid)
+          .child(Constant.FIREBASE_REALTIME_DATABASE_CHATROOMS_REF_NAME)
+          .set(chatRoomListOfMember);
+      }));
+    } else {
+
     }
     return chatroom
   } catch (e) {
