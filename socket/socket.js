@@ -61,15 +61,15 @@ async function handleNewMessageEvent(data) {
     // Check parsedData is validate
     if (parsedData) {
 
-        const { chatRoomId, newMessage, members } = parsedData
+        const { chatRoomId, chatRoomName, chatRoomType, newMessage, members } = parsedData
 
         // Check chatRoomId, chatRoomId are validate
-        if (chatRoomId && chatRoomId) {
+        if (chatRoomId && chatRoomName && chatRoomType) {
 
-            const { senderId, text, photo, audio, video } = parseStringToJSON(newMessage)
+            const { senderId, senderName, text, photo, audio, video } = parseStringToJSON(newMessage)
 
             // Check that the data is valid. The message content must have a non-null field.
-            if (senderId && (text || photo || video || audio)) {
+            if (senderId && senderName && (text || photo || video || audio)) {
 
                 // 
                 const listOfUidsOfUsersInchatRoom = (members != null && members.length >= Constant.MIN_SIZE_OF_CHATROOM) ? members : await getUsersInChatRoom(chatRoomId)
@@ -84,7 +84,14 @@ async function handleNewMessageEvent(data) {
                     const tokens = await getTokens(listOfNotifiedUsers)
 
                     // Send new messages to users according to token list
-                    sendMessageToUsers(newMessage, tokens)
+                    sendMessageToUsers({
+                        chatRoomId: chatRoomId,
+                        chatRoomName: chatRoomName,
+                        chatRoomType: chatRoomType,
+                        senderName: senderName,
+                        text: text || "",
+                        photo: photo || ""
+                    }, tokens)
                 }
             }
         }
@@ -140,7 +147,7 @@ async function handleNewChatRoom(socket, data) {
 
     const { members, chatRoomType } = parsedData
 
-    if (!members 
+    if (!members
         || !Array.isArray(members)
         || members.length < 2
         || !chatRoomType
@@ -153,10 +160,10 @@ async function handleNewChatRoom(socket, data) {
         emitChatRoomResponse(socket, 500, null)
         return
     }
-    
+
     // Create chat room in database
     const chatRoom = await createNewChatRoom(members, chatRoomType)
-    
+
     emitChatRoomResponse(socket, chatRoom == null ? 500 : 200, chatRoom)
 }
 
@@ -168,7 +175,7 @@ async function handleNewChatRoom(socket, data) {
  * @param {*} chatRoom new chatroom created
  */
 function emitChatRoomResponse(socket, responseStatusCode, chatRoom) {
-    socket.emit(Constant.NEW_CHATROOM_SOCKET_EVENT, {responseStatusCode, chatRoom})
+    socket.emit(Constant.NEW_CHATROOM_SOCKET_EVENT, { responseStatusCode, chatRoom })
 }
 
 export default io

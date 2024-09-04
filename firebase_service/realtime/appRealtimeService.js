@@ -73,7 +73,8 @@ async function getTokens(members) {
 async function createNewChatRoom(members, chatRoomType) {
   let chatroom = null
   try {
-    if(chatRoomType === ChatRoomType.DOUBLE) {
+    if (chatRoomType === ChatRoomType.DOUBLE) {
+
       // Chat room Id are set according to the convention user1___user2
       const chatRoomId = members.join("___")
 
@@ -116,8 +117,8 @@ async function createNewChatRoom(members, chatRoomType) {
           .child(oppositeUserId)
           .set({ uid: oppositeUserId, status: ContactStatus.ACTIVE })
       }));
-    } else if(chatRoomType === ChatRoomType.GROUP) {
-      
+    } else if (chatRoomType === ChatRoomType.GROUP) {
+
       // Chat room Id are set according to the convention user1___user2___user3___currentTime
       const chatRoomId = `${members.slice(0, 3).join("___")}___${getCurrentTime()}`
 
