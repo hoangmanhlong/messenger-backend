@@ -66,10 +66,10 @@ async function handleNewMessageEvent(data) {
         // Check chatRoomId, chatRoomId are validate
         if (chatRoomId && chatRoomName && chatRoomType) {
 
-            const { senderId, senderName, text, photo, audio, video } = parseStringToJSON(newMessage)
+            const { senderId, senderName, text, medias } = parseStringToJSON(newMessage)
 
             // Check that the data is valid. The message content must have a non-null field.
-            if (senderId && senderName && (text || photo || video || audio)) {
+            if (senderId && senderName && (text || medias)) {
 
                 // 
                 const listOfUidsOfUsersInchatRoom = (members != null && members.length >= Constant.MIN_SIZE_OF_CHATROOM) ? members : await getUsersInChatRoom(chatRoomId)
@@ -90,7 +90,7 @@ async function handleNewMessageEvent(data) {
                         chatRoomType: chatRoomType,
                         senderName: senderName,
                         text: text || "",
-                        photo: photo || ""
+                        medias: medias ? JSON.stringify(medias) : ""
                     }, tokens)
                 }
             }
