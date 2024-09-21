@@ -1,6 +1,6 @@
 import { Server } from "socket.io"
 import Constant, { ChatRoomType } from "../constant/constant.js"
-import { setUserOnlineStatus, getUsersInChatRoom, getTokens, createNewChatRoom } from "../firebase_service/realtime/appRealtimeService.js"
+import { setUserOnlineStatus, getUsersInChatRoom, getTokens, createNewChatRoom, addNewMembers } from "../firebase_service/realtime/appRealtimeService.js"
 import { parseStringToJSON } from "../validate/app_validate.js"
 import { sendMessageToUsers } from "../firebase_service/fcm/appFcmService.js"
 
@@ -49,6 +49,11 @@ const initializeSocket = async (server) => {
          * @param data Data sent from client
          */
         socket.on(Constant.NEW_CHATROOM_SOCKET_EVENT, async data => handleNewChatRoom(socket, data))
+
+        /**
+         * New members listener
+         */
+        socket.on(Constant.NEW_CHATROOM_MEMBERS_SOCKET_EVENT, async data => handleNewMembers(socket, data))
     })
 
     console.log(Constant.SOCKET_IO_CONNECT_SUCCESSFULLY)
@@ -176,6 +181,29 @@ async function handleNewChatRoom(socket, data) {
  */
 function emitChatRoomResponse(socket, responseStatusCode, chatRoom) {
     socket.emit(Constant.NEW_CHATROOM_SOCKET_EVENT, { responseStatusCode, chatRoom })
+}
+
+async function handleNewMembers(socket, data) {
+    const parsedData = parseStringToJSON(data)
+
+    if(!parsedData) {
+        emitNewMembersResponse(socket, 500)
+        return
+    }
+
+    const { chatRoomId, members } = parsedData
+
+    if(!chatRoomId || !members || members.length <= 0) {
+        emitNewMembersResponse(socket, 500)
+        return
+    }
+
+    const result = addNewMembers(chatRoomId, members)
+    emitNewMembersResponse(socket, result ? 200 : 500)
+}
+
+function emitNewMembersResponse(socket, responseStatusCode) {
+    socket.emit(Constant.NEW_CHATROOM_MEMBERS_SOCKET_EVENT, { responseStatusCode })
 }
 
 export default io

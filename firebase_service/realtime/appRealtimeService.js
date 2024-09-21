@@ -162,4 +162,50 @@ async function createNewChatRoom(members, chatRoomType) {
   }
 }
 
-export { setUserOnlineStatus, setVerifiedStatus, getUsersInChatRoom, getTokens, createNewChatRoom }
+async function addNewMembers(chatRoomId, newMembers) {
+  try {
+
+    const snapshot = await chatRoomsRef.child(chatRoomId)
+      .child(Constant.FIREBASE_REALTIME_DATABASE_MEMBERS_REF_NAME)
+      .get()
+
+    const currentMembers = snapshot.val() || []
+
+    // Lọc các thành viên mới chưa có trong danh sách hiện tại
+    const membersToAdd = newMembers.filter(uid => !currentMembers.includes(uid));
+
+    // Nếu có thành viên mới để thêm vào, thì thêm vào danh sách và cập nhật Firebase
+    if (membersToAdd.length > 0) {
+      membersToAdd.forEach(uid => currentMembers.push(uid))
+      await chatRoomsRef.child(chatRoomId)
+        .child(Constant.FIREBASE_REALTIME_DATABASE_MEMBERS_REF_NAME)
+        .set(currentMembers); // Cập nhật lại danh sách thành viên
+    }
+
+    await Promise.all(newMembers.map(async memberUid => {
+      // Get all chatroom list of current user
+      const snapshot = await privateUserDataRef
+        .child(memberUid)
+        .child(Constant.FIREBASE_REALTIME_DATABASE_CHATROOMS_REF_NAME)
+        .get();
+
+      // Save chatroom Id list. IF snapshot is null then create empty list
+      const chatRoomListOfMember = snapshot.val() || [];
+
+      // Kiểm tra nếu chatRoomId đã tồn tại trong danh sách chatRooms của user, nếu chưa thì thêm vào
+      if (!chatRoomListOfMember.includes(chatRoomId)) chatRoomListOfMember.push(chatRoomId);
+
+      // Cập nhật lại danh sách chat rooms lên Firebase
+      privateUserDataRef
+        .child(memberUid)
+        .child(Constant.FIREBASE_REALTIME_DATABASE_CHATROOMS_REF_NAME)
+        .set(chatRoomListOfMember);
+    }))
+
+    return true
+  } catch (e) {
+    return false
+  }
+}
+
+export { setUserOnlineStatus, setVerifiedStatus, getUsersInChatRoom, getTokens, createNewChatRoom, addNewMembers }

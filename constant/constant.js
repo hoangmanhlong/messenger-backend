@@ -14,6 +14,7 @@ class Constant {
     static SOCKET_IO_CONNECT_SUCCESSFULLY = "Socket.io initialize successfully"
     static MIN_SIZE_OF_CHATROOM = 2
     static NEW_CHATROOM_SOCKET_EVENT = "NEW_CHATROOM_SOCKET_EVENT"
+    static NEW_CHATROOM_MEMBERS_SOCKET_EVENT = "NEW_CHATROOM_MEMBERS_SOCKET_EVENT"
     static CONTACTS = "contacts"
     static showRunningStatus = (port) => console.log(`Server is running on port ${port}`)
     static CHATROOMS = "chatRooms"
